@@ -4,9 +4,13 @@ public protocol AnalyticsTracker: Sendable {
     func track(event: String)
     func track(error: Error)
 }
-
 @Observable
 public final class MyViewModel {
+
+    enum Action {
+        case start
+        case stop
+    }
 
     public struct ViewState {
         public var title: String
@@ -39,7 +43,18 @@ public final class MyViewModel {
         }
     }
 
+    @MainActor
+    func send(_ action: Action) {
+        Task {
+            viewState.isBusy = true
+            await someLongOperation()
+            viewState.title = "Loaded!"
+            viewState.isBusy = false
+            analyticsTracker.track(event: "MyViewModelStarted")
+        }
+    }
+
     private func someLongOperation() async {
-        try? await Task.sleep(for: .seconds(1))
+        try? await Task.sleep(for: .milliseconds(200))
     }
 }

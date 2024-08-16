@@ -56,9 +56,9 @@ struct SwiftyTests {
         let sut = env.makeSUT()
         env.analyticsTracker.trackEventMock.returns()
 
-        await expectation(
-            fulfilmentCallback: env.analyticsTracker.trackEventMock.whenCalled,
-            sutCall: sut.start
+        await fulfillment(
+            expectation: env.analyticsTracker.trackEventMock.whenCalled,
+            whenCalling: sut.start
         )
 
         #expect(env.analyticsTracker.trackEventMock.calledOnce)
@@ -71,10 +71,10 @@ struct SwiftyTests {
         let sut = env.makeSUT()
         env.analyticsTracker.trackEventMock.returns()
 
-        await expectation(
-            fulfilmentCallback: env.analyticsTracker.trackEventMock.whenCalled,
-            sutCall: sut.send,
-            sutInput: .start
+        await fulfillment(
+            expectation: env.analyticsTracker.trackEventMock.whenCalled,
+            whenCalling: sut.send,
+            with: .start
         )
 
         #expect(env.analyticsTracker.trackEventMock.calledOnce)
@@ -82,31 +82,31 @@ struct SwiftyTests {
     }
 }
 
-func expectation<Condition, SutInput: Sendable>(
-    fulfilmentCallback: (@escaping (Condition) -> Void) -> Void,
-    sutCall: @escaping @isolated(any) (SutInput) -> Void,
-    sutInput: SutInput
+func fulfillment<Condition, SutInput: Sendable>(
+    expectation: (@escaping (Condition) -> Void) -> Void,
+    whenCalling sutFunction: @escaping @isolated(any) (SutInput) -> Void,
+    with input: SutInput
 ) async {
     let stream = AsyncStream { continuation in
-        fulfilmentCallback { _ in
+        expectation { _ in
             continuation.yield()
         }
     }
-    await sutCall(sutInput)
+    await sutFunction(input)
     var iterator = stream.makeAsyncIterator()
     await iterator.next()
 }
 
-func expectation<Condition>(
-    fulfilmentCallback: (@escaping (Condition) -> Void) -> Void,
-    sutCall: @escaping @isolated(any) () -> Void
+func fulfillment<Condition>(
+    expectation: (@escaping (Condition) -> Void) -> Void,
+    whenCalling sutFunction: @escaping @isolated(any) () -> Void
 ) async {
     let stream = AsyncStream { continuation in
-        fulfilmentCallback { _ in
+        expectation { _ in
             continuation.yield()
         }
     }
-    await sutCall()
+    await sutFunction()
     var iterator = stream.makeAsyncIterator()
     await iterator.next()
 }

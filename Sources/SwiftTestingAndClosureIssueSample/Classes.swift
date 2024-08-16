@@ -24,7 +24,6 @@ public final class MyViewModel {
 
     @ObservationIgnored
     let analyticsTracker: any AnalyticsTracker
-
     var viewState: ViewState
 
     public init(analyticsTracker: any AnalyticsTracker, viewState: ViewState) {
